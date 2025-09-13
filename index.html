@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🎮   Gaming Arcade</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background-color: rgb(10, 11, 11);
+      color: #f8f5f5;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
+    }
+   h1 {
+  font-size: 60px !important; /* Force it */
+  line-height: 2.6;
+  color: #ff9800;
+  text-shadow: 0 0 15px #ff9800;
+  text-align: center;
+  margin-top: 80px;
+  margin-bottom: 80px;
+  padding-top:50px;
+}
+    .game-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 30px;
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 20px;
+      margin-top: 80px;
+      margin-bottom: 60px;
+    }
+    .game-card {
+      background: #333;
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      box-shadow: 0 0 20px rgba(0,0,0,0.6);
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    .game-card:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 25px #ff9800;
+    }
+    .game-card h2 {
+      color: #ff9800;
+      margin-bottom: 10px;
+    }
+    .game-card button {
+      background: #ff9800;
+      color: #000;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .game-card button:hover {
+      background: #ff6f00;
+    }
+    .game-section {
+      display: none;
+      padding: 20px;
+      max-width: 960px;
+      margin: 0 auto;
+    }
+    .game-section.active {
+      display: block;
+    }
+    .back-button {
+      margin-top: 20px;
+      background: #ff9800;
+      color: #000;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    iframe {
+      width: 100%;
+      height: 700px;
+      border: 2px solid white;
+      border-radius: 8px;
+      background: white;
+    }
+  </style>
+</head>
+<body>
+<h1>🎮 Game Arcade</h1>
+  <div id="arcadeMenu" class="game-grid">
+    <div class="game-card"><h2>🧨 Breakout</h2><button onclick="openGame('breakout', 'break2.html')">Play</button></div>
+    <div class="game-card"><h2>🚗 Car Dodger</h2><button onclick="openGame('car', 'car.html')">Play</button></div>
+    <div class="game-card"><h2>🍏 Falling Fruits</h2><button onclick="openGame('fruits', 'fruits.html')">Play</button></div>
+    <div class="game-card"><h2>🐍 Snake</h2><button onclick="openGame('snake', 'snake2.html')">Play</button></div>
+    <div class="game-card"><h2>🧠 Memory Game</h2><button onclick="openGame('memory', 'memory.html')">Play</button></div>
+    <div class="game-card"><h2>👾 Alien Shooter</h2><button onclick="openGame('shooter', 'shooter2.html')">Play</button></div>
+    <div class="game-card"><h2>🏗️ Tower Stacker</h2><button onclick="openGame('tower', 'towerblock.html')">Play</button></div>
+    <div class="game-card"><h2>📝 word find</h2><button onclick="openGame('word','word.html')">play</button></div>
+  </div>
+
+  <!-- Game containers -->
+  <div id="breakout" class="game-section"></div>
+  <div id="car" class="game-section"></div>
+  <div id="fruits" class="game-section"></div>
+  <div id="snake" class="game-section"></div>
+  <div id="memory" class="game-section"></div>
+  <div id="shooter" class="game-section"></div>
+  <div id="tower" class="game-section"></div>
+  <div id="word" class="game-section"></div>
+
+  <div style="text-align:center; padding-bottom: 40px;">
+    <button onclick="goBack()" class="back-button" id="backBtn" style="display:none;">⬅ Back to Menu</button>
+  </div>
+
+  <script>
+    function openGame(containerId, htmlFile) {
+      document.getElementById('arcadeMenu').style.display = 'none';
+      document.getElementById('backBtn').style.display = 'inline-block';
+      document.querySelectorAll('.game-section').forEach(div => div.classList.remove('active'));
+      const container = document.getElementById(containerId);
+      container.classList.add('active');
+      if (!container.innerHTML.trim()) {
+        container.innerHTML = `<iframe src="${htmlFile}"></iframe>`;
+      }
+    }
+
+    function goBack() {
+      document.getElementById('arcadeMenu').style.display = 'grid';
+      document.getElementById('backBtn').style.display = 'none';
+      document.querySelectorAll('.game-section').forEach(div => {
+        div.classList.remove('active');
+        div.innerHTML = '';
+      });
+    }
+  </script>
+
+</body>
+</html>

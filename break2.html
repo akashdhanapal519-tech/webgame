@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Breakout Game (JS + Canvas)</title>
+<style>
+  body { background: #000; color: white; font-family: Arial, sans-serif; text-align: center; padding: 10px; }
+  canvas { background: #111; border: 2px solid #333; display: block; margin: 0 auto; }
+  .controls { margin: 10px; font-size: 1.2em; }
+  .controls span { margin: 0 20px; }
+  .buttons button { padding: 10px 20px; font-size: 1.1em; margin: 0 10px; cursor: pointer; }
+</style>
+</head>
+<body>
+
+<h1>Breakout Game</h1>
+<canvas id="gameCanvas" width="800" height="600"></canvas>
+<div class="controls">
+  <span id="score">Score: 0</span>
+  <span id="lives">Lives: 3</span>
+  <span id="level">Level: 1</span>
+</div>
+<div class="buttons">
+  <button id="level1">Level 1</button>
+  <button id="level2">Level 2</button>
+  <button id="level3">Level 3</button>
+  <button id="restart">Restart</button>
+</div>
+
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+let WIDTH = canvas.width, HEIGHT = canvas.height;
+let LEVEL = 1, score = 0, lives = 3;
+let gameActive = false;
+let gameWon = false;
+
+let paddle = { width: 100, height: 10, x: WIDTH/2-50, y: HEIGHT-40, speed: 10 };
+let ball = { x: WIDTH/2, y: HEIGHT/2, r: 10, dx: 4, dy: -4 };
+let brickRows = 5, brickCols = 7, brickW = 75, brickH = 25, brickGap = 10;
+let bricks = [], keysPressed = {};
+
+function createBricks(moving = false) {
+  bricks = [];
+  let totalWidth = brickCols * brickW + (brickCols-1) * brickGap;
+  let offsetX = (WIDTH - totalWidth) / 2;
+  for (let row = 0; row < brickRows; row++) {
+    for (let col = 0; col < brickCols; col++) {
+      bricks.push({ x: offsetX + col*(brickW+brickGap), y: 60 + row*(brickH+brickGap),
+                    moving: moving && row % 2 === 0, dir: 1 });
+    }
+  }
+}
+function resetGame() {
+  score = 0; lives = 3; gameWon = false;
+  paddle.width = LEVEL===1 ? 100 : 70;
+  paddle.x = WIDTH/2 - paddle.width/2;
+  ball.x = WIDTH/2; ball.y = HEIGHT/2;
+  ball.dx = LEVEL===1 ? 4 : 6; ball.dy = LEVEL===1 ? -4 : -6;
+  createBricks(LEVEL===3); gameActive = true;
+  updateUI();
+}
+function updateUI() {
+  document.getElementById('score').textContent = `Score: ${score}`;
+  document.getElementById('lives').textContent = `Lives: ${lives}`;
+  document.getElementById('level').textContent = `Level: ${LEVEL}`;
+}
+function drawPaddle() {
+  ctx.fillStyle = 'white';
+  ctx.fillRect(paddle.x, paddle.y, paddle.width, paddle.height);
+}
+function drawBall() {
+  ctx.beginPath();
+  ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI*2);
+  ctx.fillStyle='green'; ctx.fill();
+}
+function drawBricks() {
+  bricks.forEach(b => {
+    ctx.fillStyle = ['red','green','blue','yellow'][Math.floor(Math.random()*4)];
+    ctx.fillRect(b.x, b.y, brickW, brickH);
+  })
+}
+function moveBricks() {
+  bricks.forEach(b=>{
+    if(b.moving){
+      b.x += b.dir;
+      if(b.x <= 0 || b.x+brickW >= WIDTH) b.dir*=-1;
+    }
+  })
+}
+function gameLoop() {
+  ctx.clearRect(0,0,WIDTH,HEIGHT);
+  drawPaddle(); drawBall(); drawBricks();
+
+  // CONTINUOUS paddle movement
+  if(keysPressed['ArrowLeft'] && paddle.x>0) paddle.x -= paddle.speed;
+  if(keysPressed['ArrowRight'] && paddle.x+paddle.width<WIDTH) paddle.x += paddle.speed;
+
+  if(gameActive){
+    ball.x += ball.dx; ball.y += ball.dy;
+    if(ball.x-ball.r <= 0 || ball.x+ball.r >= WIDTH) ball.dx*=-1;
+    if(ball.y-ball.r <= 0) ball.dy*=-1;
+    if(ball.y+ball.r >= paddle.y && ball.x>paddle.x && ball.x<paddle.x+paddle.width) ball.dy*=-1;
+    for (let i = bricks.length-1;i>=0;i--){
+      let b = bricks[i];
+      if(ball.x>b.x && ball.x<b.x+brickW && ball.y>b.y && ball.y<b.y+brickH){
+        ball.dy*=-1; bricks.splice(i,1); score+=10; updateUI();
+      }
+    }
+    if(ball.y>HEIGHT){
+      lives--; updateUI();
+      if(lives===0){ gameActive=false; } else { ball.x=WIDTH/2; ball.y=HEIGHT/2; ball.dy*=-1; }
+    }
+    if(LEVEL===3) moveBricks();
+
+    // WIN condition
+    if(bricks.length===0){
+      gameActive=false; gameWon=true;
+    }
+  } else {
+    ctx.font='24px Arial';
+    ctx.fillStyle='red';
+    if(gameWon){
+      ctx.fillText('You Won! 🎉 Click Restart to play again.', WIDTH/2-180, HEIGHT/2);
+    } else {
+      ctx.fillText('Game Over! Click Restart to play.', WIDTH/2-150, HEIGHT/2);
+    }
+  }
+  requestAnimationFrame(gameLoop);
+}
+document.addEventListener('keydown',e=>keysPressed[e.key]=true);
+document.addEventListener('keyup',e=>keysPressed[e.key]=false);
+document.getElementById('level1').onclick=()=>{LEVEL=1; resetGame();}
+document.getElementById('level2').onclick=()=>{LEVEL=2; resetGame();}
+document.getElementById('level3').onclick=()=>{LEVEL=3; resetGame();}
+document.getElementById('restart').onclick=()=>resetGame();
+
+gameLoop();
+</script>
+</body>
+</html>

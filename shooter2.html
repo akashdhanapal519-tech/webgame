@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Alien Shooter (Spacecraft & Jets Design)</title>
+<style>
+  body { background: #000; color: white; font-family: Arial, sans-serif; text-align: center; }
+  canvas { background: radial-gradient(#00111a, #000); display: block; margin: 0 auto; border: 2px solid white; }
+  .button-bar { margin: 10px; }
+  .button-bar button { padding: 8px 12px; margin: 0 5px; cursor: pointer; }
+</style>
+</head>
+<body>
+<h1>Alien Shooter</h1>
+<div class="button-bar">
+  <button onclick="setLevel(1)">Level 1</button>
+  <button onclick="setLevel(2)">Level 2</button>
+  <button onclick="setLevel(3)">Level 3</button>
+  <button onclick="restartGame()">Restart</button>
+</div>
+<canvas id="gameCanvas" width="600" height="700"></canvas>
+<p id="scoreDisplay">Score: 0 — Level: 1</p>
+
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+let level = 1;
+let score = 0;
+let alienSpeed = 1;
+let maxAliens = 5;
+let player = { x: canvas.width/2 - 20, y: canvas.height-60, width: 40, height: 40, speed: 6 };
+let bullets = [];
+let aliens = [];
+let keys = {};
+
+// Input
+document.addEventListener('keydown', e => keys[e.code] = true);
+document.addEventListener('keyup', e => keys[e.code] = false);
+
+function setLevel(lv) {
+  level = lv;
+  alienSpeed = 1 + (lv-1)*2;
+  maxAliens = 5 * lv;
+  restartGame();
+}
+function restartGame() {
+  score = 0;
+  player.x = canvas.width/2 - player.width/2;
+  bullets = [];
+  aliens = [];
+  updateScore();
+}
+function updateScore() {
+  document.getElementById('scoreDisplay').textContent = `Score: ${score} — Level: ${level}`;
+}
+function spawnAlien() {
+  if (aliens.length < maxAliens) {
+    aliens.push({ x: Math.random() * (canvas.width-50), y: -60, width: 50, height: 30 });
+  }
+}
+
+function drawSpacecraft(x, y) {
+  ctx.fillStyle = 'cyan';
+  ctx.beginPath();
+  ctx.moveTo(x+player.width/2, y);          // nose
+  ctx.lineTo(x, y+player.height);           // left wing
+  ctx.lineTo(x+player.width, y+player.height); // right wing
+  ctx.closePath();
+  ctx.fill();
+}
+
+function drawJet(x, y, w, h) {
+  ctx.fillStyle = 'orange';
+  ctx.beginPath();
+  ctx.moveTo(x+w/2, y);        // jet nose
+  ctx.lineTo(x, y+h);          // left wing
+  ctx.lineTo(x+w, y+h);        // right wing
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.fillStyle = 'red';
+  ctx.beginPath();
+  ctx.arc(x+w/2, y+h/2, w/5, 0, 2*Math.PI); // cockpit
+  ctx.fill();
+}
+
+function gameLoop() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  if (keys['ArrowLeft']) player.x -= player.speed;
+  if (keys['ArrowRight']) player.x += player.speed;
+  player.x = Math.max(0, Math.min(canvas.width-player.width, player.x));
+
+  if (keys['Space']) {
+    if (bullets.length === 0 || (Date.now()-bullets[bullets.length-1].time) > 200) {
+      bullets.push({ x: player.x+player.width/2-2, y: player.y, width: 4, height: 10, time: Date.now() });
+    }
+  }
+
+  bullets = bullets.filter(b => b.y > -10).map(b => ({ ...b, y: b.y-7 }));
+  if (Math.random() < 0.02) spawnAlien();
+
+  aliens = aliens.filter(a => a.y < canvas.height).map(a => ({ ...a, y: a.y+alienSpeed }));
+  bullets.forEach(b => aliens.forEach(a => {
+    if (b.x < a.x+a.width && b.x+b.width > a.x && b.y < a.y+a.height && b.y+b.height > a.y) {
+      a.hit = true; b.hit = true; score++;
+    }
+  }));
+  bullets = bullets.filter(b => !b.hit);
+  aliens = aliens.filter(a => !a.hit);
+
+  // Draw player (spacecraft)
+  drawSpacecraft(player.x, player.y);
+
+  // Draw bullets
+  ctx.fillStyle = 'lime';
+  bullets.forEach(b => ctx.fillRect(b.x, b.y, b.width, b.height));
+  
+  // Draw aliens as jets
+  aliens.forEach(a => drawJet(a.x, a.y, a.width, a.height));
+
+  updateScore();
+  requestAnimationFrame(gameLoop);
+}
+gameLoop();
+</script>
+</body>
+</html>
+
+
+

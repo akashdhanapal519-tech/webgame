@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Falling Fruits (With Timer per Level)</title>
+<style>
+  body { background: #222; color: white; text-align: center; font-family: Arial, sans-serif; }
+  canvas { background: white; border: 2px solid black; margin-top: 10px; }
+  button { padding: 8px 16px; margin: 5px; cursor: pointer; border: none; border-radius: 4px; }
+  .level-btn { background: #4caf50; color: white; }
+  #restart { background: #ff4444; color: white; }
+</style>
+</head>
+<body>
+<h1>🍏🍊🍌 Falling Fruits Game</h1>
+<div>
+  <button class="level-btn" onclick="setLevel(1)">Level 1</button>
+  <button class="level-btn" onclick="setLevel(2)">Level 2</button>
+  <button class="level-btn" onclick="setLevel(3)">Level 3</button>
+  <button id="restart" onclick="restartGame()">Restart</button>
+</div>
+<canvas id="game" width="400" height="500"></canvas>
+
+<script>
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+
+let basketX = 180, basketY = 450, basketWidth = 60, basketHeight = 30;
+let fruits = [], level = 1, score = 0, fruitSpeed = 2;
+let gameLoop, dropLoop, timerLoop;
+let timeLeft = 60;
+
+canvas.addEventListener('mousemove', e => {
+  const rect = canvas.getBoundingClientRect();
+  basketX = e.clientX - rect.left - basketWidth/2;
+});
+
+function drawBasket() {
+  ctx.fillStyle = 'brown';
+  ctx.fillRect(basketX, basketY, basketWidth, basketHeight);
+}
+function drawHUD() {
+  ctx.fillStyle = 'black';
+  ctx.font = '18px Arial';
+  ctx.fillText(`Score: ${score}`, 10, 20);
+  ctx.fillText(`Level: ${level}`, 10, 40);
+  ctx.fillText(`Time: ${timeLeft}s`, 10, 60);
+}
+function dropFruit() {
+  const fruitTypes = ['🍏','🍊','🍌'];
+  fruits.push({ x: Math.random()*(canvas.width-20), y: -20, symbol: fruitTypes[Math.floor(Math.random()*fruitTypes.length)] });
+}
+function update() {
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  drawBasket();
+  fruits.forEach(fruit => {
+    fruit.y += fruitSpeed;
+    ctx.font = '24px Arial';
+    ctx.fillText(fruit.symbol, fruit.x, fruit.y);
+  });
+  fruits = fruits.filter(fruit => {
+    if (fruit.y >= basketY && fruit.x >= basketX && fruit.x <= basketX+basketWidth) {
+      score++;
+      return false;
+    }
+    return fruit.y < canvas.height;
+  });
+  drawHUD();
+}
+function setLevel(newLevel) {
+  level = newLevel;
+  score = 0;
+  fruits = [];
+  fruitSpeed = level === 1 ? 2 : level === 2 ? 4 : 6;
+  timeLeft = level === 1 ? 60 : level === 2 ? 40 : 30;
+  resetDropLoop();
+  resetTimerLoop();
+}
+function restartGame() {
+  setLevel(1); 
+}
+function resetDropLoop() {
+  clearInterval(dropLoop);
+  let dropInterval = level === 1 ? 1000 : level === 2 ? 700 : 500;
+  dropLoop = setInterval(dropFruit, dropInterval);
+}
+function resetTimerLoop() {
+  clearInterval(timerLoop);
+  timerLoop = setInterval(() => {
+    timeLeft--;
+    if (timeLeft <= 0) {
+      clearInterval(dropLoop);
+      clearInterval(timerLoop);
+    }
+  }, 1000);
+}
+
+// Start game
+gameLoop = setInterval(update, 20);
+setLevel(1); // init level 1
+</script>
+</body>
+</html>
+
+
+
+
+
+
